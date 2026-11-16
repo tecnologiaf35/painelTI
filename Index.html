@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecionamento - Painel TI</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px #0001;
+            max-width: 400px;
+            width: 85%;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        #status {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .loader {
+            margin: 25px auto;
+            border: 4px solid #eee;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Painel de TI</h2>
+    <p>Verificando disponibilidade do sistema...</p>
+    <div class="loader" id="loader"></div>
+    <div id="status">Aguarde enquanto verificamos os servidores.</div>
+</div>
+
+<script>
+    const sites = [
+        "https://painelti.onrender.com/",
+        "https://painelti35.onrender.com/"
+    ];
+
+    const timeout = 15000;
+
+    async function verificarSite(url) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                mode: "cors",
+                cache: "no-store",
+                signal: controller.signal
+            });
+
+            return response.status === 200;
+
+        } catch (error) {
+            return false;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    async function iniciar() {
+        const status = document.getElementById("status");
+
+        for (const site of sites) {
+            status.textContent = "Verificando: " + site;
+
+            if (await verificarSite(site)) {
+                status.textContent = "Servidor disponível! Redirecionando...";
+                window.location.replace(site);
+                return;
+            }
+        }
+
+        document.getElementById("loader").style.display = "none";
+        status.innerHTML =
+            "Não foi possível acessar nenhum dos servidores.<br><br>" +
+            '<button onclick="iniciar()">Tentar novamente</button>';
+    }
+
+    iniciar();
+</script>
+
+</body>
+</html>
